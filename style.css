@@ -1,77 +1,97 @@
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
-  margin: 0;
-  padding: 0;
+  background: linear-gradient(135deg, #6dd5ed, #2193b0);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
+  margin: 0;
+  padding: 20px;
 }
 
 .container {
-  background: white;
-  margin: 20px;
+  background: #fff;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  width: 90%;
-  max-width: 600px;
+  max-width: 800px;
+  width: 100%;
   text-align: center;
 }
 
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
+
+#word-list {
+  margin: 15px 0;
+}
+
+.word {
+  display: inline-block;
+  background: #e0e0e0;
+  padding: 6px 12px;
+  margin: 4px;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.word.found {
+  background: #4caf50;
+  color: white;
+  text-decoration: line-through;
+  transform: scale(1.1);
+}
 
 #grid {
   display: grid;
-  grid-template-columns: repeat(15, 30px);
-  grid-gap: 2px;
-  margin-top: 20px;
+  grid-template-columns: repeat(12, 30px);
   justify-content: center;
+  gap: 2px;
+  margin: 15px 0;
 }
 
 .cell {
   width: 30px;
   height: 30px;
-  background: #f1f1f1;
-  border: 1px solid #ccc;
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 1px solid #999;
   cursor: pointer;
   user-select: none;
   font-weight: bold;
+  background: white;
+  transition: background 0.2s, transform 0.1s;
 }
 
-.cell.selected { background: #ffeb3b; }
-.cell.found { background: #4caf50; color: white; animation: foundAnim 0.5s ease; }
+.cell.selected {
+  background: #81d4fa;
+}
+
+.cell.found {
+  background: #4caf50;
+  color: white;
+  animation: foundAnim 0.4s ease;
+}
 
 @keyframes foundAnim {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  from { transform: scale(1.2); }
+  to { transform: scale(1); }
 }
-
-.word {
-  display: inline-block;
-  background: #81c784;
-  color: white;
-  padding: 5px 10px;
-  margin: 5px;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.word.found { text-decoration: line-through; background: #2e7d32; }
 
 button {
   padding: 10px 20px;
+  margin-top: 10px;
   border: none;
-  border-radius: 8px;
-  background: #0072ff;
+  border-radius: 6px;
+  background: #2193b0;
   color: white;
   font-size: 16px;
   cursor: pointer;
 }
 
-button:hover { background: #0056cc; }
+button:hover {
+  background: #176d80;
+}
