@@ -1,161 +1,149 @@
 const words = ["BUKU", "PENA", "MEJA", "KURSI", "SEKOLAH", "GURU", "MURID", "PINTU", "JENDELA", "BOLA"];
-const gridSize = 15;
-
+let gridSize = 15;
 let grid = [];
-let foundWords = [];
-let score = 0;
-let timer = 0;
-let timerInterval;
 let playerName = "";
-
-let currentSelection = [];
+let score = 0;
+let timeLeft = 120;
+let timerInterval;
+let selectedCells = [];
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-// --------- Leaderboard ---------
-function renderLeaderboard() {
-  const leaderboardList = document.getElementById("leaderboard");
-  leaderboardList.innerHTML = "";
-  leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
-  leaderboard.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.textContent = `${i + 1}. ${p.name} - Skor: ${p.score}, Waktu: ${p.time} detik`;
-    leaderboardList.appendChild(li);
-  });
-}
-
-function startGame(name) {
-  playerName = name;
-  foundWords = [];
+// -------- START GAME ----------
+function startGame() {
+  playerName = document.getElementById("playerName").value || "Player";
+  document.getElementById("displayName").innerText = playerName;
   score = 0;
-  timer = 0;
-  currentSelection = [];
-  document.getElementById("displayName").textContent = name;
-  document.getElementById("score").textContent = score;
+  document.getElementById("score").innerText = score;
+  timeLeft = 120;
+  document.getElementById("timer").innerText = timeLeft;
+
+  document.getElementById("start-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.remove("hidden");
 
   generateGrid();
-  renderWordList();
+  displayWordList();
 
-  document.getElementById("start-screen").style.display = "none";
-  document.getElementById("game-screen").style.display = "block";
-
-  clearInterval(timerInterval);
   timerInterval = setInterval(() => {
-    timer++;
-    document.getElementById("timer").textContent = timer;
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+    if (timeLeft <= 0) {
+      endGame();
+    }
   }, 1000);
 }
 
+// -------- END GAME ----------
 function endGame() {
   clearInterval(timerInterval);
-  leaderboard.push({ name: playerName, score: score, time: timer });
+  leaderboard.push({ name: playerName, score, time: 120 - timeLeft });
+  leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
+  leaderboard = leaderboard.slice(0, 10);
   localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+  document.getElementById("game-screen").classList.add("hidden");
+  document.getElementById("start-screen").classList.remove("hidden");
+
   renderLeaderboard();
-
-  document.getElementById("game-screen").style.display = "none";
-  document.getElementById("start-screen").style.display = "block";
 }
 
-document.getElementById("start-form").addEventListener("submit", e => {
-  e.preventDefault();
-  const name = document.getElementById("playerName").value.trim();
-  if (name) startGame(name);
-});
+function renderLeaderboard() {
+  const lb = document.getElementById("leaderboard");
+  lb.innerHTML = "";
+  leaderboard.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.textContent = `${i+1}. ${p.name} - Skor: ${p.score}, Waktu: ${p.time} detik`;
+    lb.appendChild(li);
+  });
+}
 
-// --------- Grid ---------
+// -------- GRID GENERATOR ----------
 function generateGrid() {
-  grid = Array.from({ length: gridSize }, () =>
-    Array.from({ length: gridSize }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)))
-  );
-  placeWords();
-  renderGrid();
+  grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
+  words.forEach(word => placeWord(word));
+  fillRandomLetters();
+  drawGrid();
 }
 
-function placeWords() {
-  words.forEach(word => {
-    let placed = false;
-    while (!placed) {
-      let row = Math.floor(Math.random() * gridSize);
-      let col = Math.floor(Math.random() * gridSize);
-      let dir = Math.random() < 0.5 ? "H" : "V";
+function placeWord(word) {
+  let placed = false;
+  while (!placed) {
+    let row = Math.floor(Math.random() * gridSize);
+    let col = Math.floor(Math.random() * gridSize);
+    let dir = Math.random() > 0.5 ? "H" : "V";
 
-      if (dir === "H" && col + word.length <= gridSize) {
-        for (let i = 0; i < word.length; i++) grid[row][col + i] = word[i];
+    if (dir === "H" && col + word.length <= gridSize) {
+      if (word.split("").every((ch, i) => grid[row][col+i] === "" || grid[row][col+i] === ch)) {
+        word.split("").forEach((ch, i) => grid[row][col+i] = ch);
         placed = true;
-      } else if (dir === "V" && row + word.length <= gridSize) {
-        for (let i = 0; i < word.length; i++) grid[row + i][col] = word[i];
+      }
+    } else if (dir === "V" && row + word.length <= gridSize) {
+      if (word.split("").every((ch, i) => grid[row+i][col] === "" || grid[row+i][col] === ch)) {
+        word.split("").forEach((ch, i) => grid[row+i][col] = ch);
         placed = true;
       }
     }
-  });
+  }
 }
 
-function renderGrid() {
-  const puzzle = document.getElementById("puzzle");
-  puzzle.innerHTML = "";
-
+function fillRandomLetters() {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let r = 0; r < gridSize; r++) {
     for (let c = 0; c < gridSize; c++) {
-      const cell = document.createElement("div");
-      cell.textContent = grid[r][c];
-      cell.classList.add("cell");
-      cell.dataset.row = r;
-      cell.dataset.col = c;
-
-      cell.addEventListener("click", () => toggleSelect(cell));
-      puzzle.appendChild(cell);
+      if (grid[r][c] === "") {
+        grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
     }
   }
 }
 
-function renderWordList() {
-  const list = document.getElementById("word-list");
-  list.innerHTML = "";
-  words.forEach(word => {
-    const btn = document.createElement("button");
-    btn.textContent = word;
-    btn.id = "word-" + word;
-    list.appendChild(btn);
+function drawGrid() {
+  const gridDiv = document.getElementById("grid");
+  gridDiv.innerHTML = "";
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      let cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.innerText = grid[r][c];
+      cell.addEventListener("click", () => selectCell(cell));
+      gridDiv.appendChild(cell);
+    }
+  }
+}
+
+function displayWordList() {
+  const wordDiv = document.getElementById("word-list");
+  wordDiv.innerHTML = "";
+  words.forEach(w => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.id = `word-${w}`;
+    span.textContent = w;
+    wordDiv.appendChild(span);
   });
 }
 
-// --------- Word Selection ---------
-function toggleSelect(cell) {
-  if (cell.classList.contains("found")) return;
+// -------- SELECTION ----------
+function selectCell(cell) {
+  cell.classList.toggle("selected");
+  selectedCells.push(cell);
 
-  if (cell.classList.contains("selected")) {
-    cell.classList.remove("selected");
-    currentSelection = currentSelection.filter(c => c !== cell);
-  } else {
-    cell.classList.add("selected");
-    currentSelection.push(cell);
-  }
+  if (selectedCells.length > 1) {
+    let word = selectedCells.map(c => c.innerText).join("");
+    let reversed = word.split("").reverse().join("");
 
-  checkSelection();
-}
-
-function checkSelection() {
-  let selectedWord = currentSelection.map(c => c.textContent).join("");
-  let reversedWord = selectedWord.split("").reverse().join("");
-
-  if (words.includes(selectedWord) || words.includes(reversedWord)) {
-    let word = words.includes(selectedWord) ? selectedWord : reversedWord;
-
-    if (!foundWords.includes(word)) {
-      foundWords.push(word);
-      score += 10;
-      document.getElementById("score").textContent = score;
-
-      currentSelection.forEach(c => {
+    if (words.includes(word) || words.includes(reversed)) {
+      selectedCells.forEach(c => {
         c.classList.remove("selected");
         c.classList.add("found");
       });
-      currentSelection = [];
-
-      let btn = document.getElementById("word-" + word);
-      if (btn) btn.classList.add("found");
-
-      if (foundWords.length === words.length) endGame();
+      document.getElementById(`word-${word}`) ? document.getElementById(`word-${word}`).classList.add("found") : 
+      document.getElementById(`word-${reversed}`).classList.add("found");
+      score += 10;
+      document.getElementById("score").innerText = score;
     }
+    selectedCells = [];
   }
 }
 
