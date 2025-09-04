@@ -4,8 +4,21 @@ let grid = [];
 let selectedCells = [];
 let score = 0;
 let time = 0;
+let timerInterval;
+let playerName = "";
 
-document.getElementById("playerName").textContent = prompt("Masukkan nama kamu:") || "Anonim";
+function startGame() {
+  const input = document.getElementById("nameInput").value.trim();
+  if (!input) return alert("Masukkan nama dulu!");
+
+  playerName = input;
+  document.getElementById("playerName").textContent = playerName;
+
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("gameScreen").style.display = "block";
+
+  initGame();
+}
 
 function initGame() {
   grid = Array.from({ length: gridSize }, () =>
@@ -16,7 +29,13 @@ function initGame() {
   renderGrid();
   renderWordList();
 
-  setInterval(() => {
+  score = 0;
+  time = 0;
+  document.getElementById("score").textContent = score;
+  document.getElementById("time").textContent = time;
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
     time++;
     document.getElementById("time").textContent = time;
   }, 1000);
@@ -30,7 +49,10 @@ function randomLetter() {
 function placeWords() {
   words.forEach(word => {
     let placed = false;
-    while (!placed) {
+    let attempts = 0;
+
+    while (!placed && attempts < 100) {
+      attempts++;
       let row = Math.floor(Math.random() * gridSize);
       let col = Math.floor(Math.random() * gridSize);
       let dir = Math.random() > 0.5 ? "H" : "V";
@@ -49,11 +71,6 @@ function placeWords() {
 function canPlace(word, row, col, dir) {
   if (dir === "H" && col + word.length > gridSize) return false;
   if (dir === "V" && row + word.length > gridSize) return false;
-
-  for (let i = 0; i < word.length; i++) {
-    if (dir === "H" && grid[row][col + i] !== word[i] && grid[row][col + i] !== randomLetter()) return false;
-    if (dir === "V" && grid[row + i][col] !== word[i] && grid[row + i][col] !== randomLetter()) return false;
-  }
   return true;
 }
 
@@ -107,7 +124,37 @@ function checkWord(word) {
 
     const wordSpan = document.getElementById("word-" + word);
     if (wordSpan) wordSpan.classList.add("found");
+
+    // cek apakah semua kata sudah ketemu
+    if (document.querySelectorAll("#wordList span:not(.found)").length === 0) {
+      clearInterval(timerInterval);
+      saveToLeaderboard();
+    }
   }
 }
 
-initGame();
+function saveToLeaderboard() {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+  leaderboard.push({ name: playerName, score, time });
+  
+  // urutkan berdasarkan skor tertinggi, lalu waktu tercepat
+  leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
+  leaderboard = leaderboard.slice(0, 5); // top 5
+
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+  const list = document.getElementById("leaderboardList");
+  list.innerHTML = "";
+
+  leaderboard.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.textContent = `${p.name} - Skor: ${p.score}, Waktu: ${p.time}s`;
+    list.appendChild(li);
+  });
+}
+
+renderLeaderboard();
