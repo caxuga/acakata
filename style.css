@@ -1,0 +1,42 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f4f8;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  gap: 4px;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: white;
+  font-weight: bold;
+}
+
+.cell.selected {
+  background: yellow;
+}
+
+.cell.found {
+  background: lightgreen;
+}
+
+.hidden {
+  display: none;
+}
+
+#word-list {
+  margin-top: 10px;
+  font-size: 16px;
+}
