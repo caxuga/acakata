@@ -7,26 +7,24 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="start-screen">
+  <div class="container" id="start-screen">
     <h1>Mencari Kata</h1>
-    <form id="start-form">
-      <label for="playerName">Masukkan Nama:</label><br>
-      <input type="text" id="playerName" required>
-      <button type="submit">Mulai Game</button>
-    </form>
+    <input type="text" id="playerName" placeholder="Masukkan Nama">
+    <button onclick="startGame()">Mulai Game</button>
 
     <h2>🏆 Leaderboard</h2>
     <ul id="leaderboard"></ul>
   </div>
 
-  <div id="game-screen" style="display:none;">
+  <div class="container hidden" id="game-screen">
     <h1>Mencari Kata</h1>
-    <p><strong>Nama:</strong> <span id="displayName"></span> |
-       <strong>Waktu:</strong> <span id="timer">0</span> detik |
-       <strong>Skor:</strong> <span id="score">0</span></p>
-
+    <div id="info">
+      <span><b>Nama:</b> <span id="displayName"></span></span> |
+      <span><b>Waktu:</b> <span id="timer">120</span> detik</span> |
+      <span><b>Skor:</b> <span id="score">0</span></span>
+    </div>
     <div id="word-list"></div>
-    <div id="puzzle"></div>
+    <div id="grid"></div>
   </div>
 
   <script src="script.js"></script>
