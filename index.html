@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Search Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+    <h1>Word Search Game</h1>
+    
+    <div id="login-screen">
+      <input type="text" id="playerName" placeholder="Masukkan Nama">
+      <button onclick="startGame()">Mulai</button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+      <p><b>Nama:</b> <span id="displayName"></span></p>
+      <p><b>Waktu:</b> <span id="timer">120</span> detik</p>
+      <p><b>Skor:</b> <span id="score">0</span></p>
+
+      <div id="word-list"></div>
+      <div id="grid"></div>
+    </div>
+
+    <div id="leaderboard-screen" class="hidden">
+      <h2>Leaderboard</h2>
+      <ol id="leaderboard"></ol>
+      <button onclick="restart()">Main Lagi</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
