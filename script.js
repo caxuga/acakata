@@ -1,28 +1,70 @@
 const words = ["BUKU", "PENA", "MEJA", "KURSI", "SEKOLAH", "GURU", "MURID", "PINTU", "JENDELA", "BOLA"];
-let gridSize = 15;
-let grid = [];
 let playerName = "";
+let gridSize = 12;
+let grid = [];
+let selectedCells = [];
 let score = 0;
 let timeLeft = 120;
 let timerInterval;
-let selectedCells = [];
-let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-// -------- START GAME ----------
+// 🎵 Efek suara dengan Web Audio API
+function playBeep(type = "success") {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+
+  if (type === "start") {
+    oscillator.frequency.value = 600;
+    gainNode.gain.value = 0.1;
+  } else if (type === "success") {
+    oscillator.frequency.value = 800;
+    gainNode.gain.value = 0.15;
+  } else if (type === "gameover") {
+    oscillator.frequency.value = 200;
+    gainNode.gain.value = 0.2;
+  }
+
+  oscillator.type = "sine";
+  oscillator.start();
+
+  if (type === "gameover") {
+    oscillator.stop(ctx.currentTime + 1.0);
+  } else {
+    oscillator.stop(ctx.currentTime + 0.2);
+  }
+}
+
 function startGame() {
-  playerName = document.getElementById("playerName").value || "Player";
+  const nameInput = document.getElementById("playerName").value.trim();
+  if (!nameInput) {
+    alert("Masukkan nama terlebih dahulu!");
+    return;
+  }
+  playerName = nameInput;
   document.getElementById("displayName").innerText = playerName;
-  score = 0;
-  document.getElementById("score").innerText = score;
-  timeLeft = 120;
-  document.getElementById("timer").innerText = timeLeft;
 
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("game-screen").classList.remove("hidden");
 
-  generateGrid();
-  displayWordList();
+  resetGame();
 
+  // 🔊 sound start
+  playBeep("start");
+}
+
+function resetGame() {
+  score = 0;
+  timeLeft = 120;
+  document.getElementById("score").innerText = score;
+  document.getElementById("timer").innerText = timeLeft;
+
+  generateGrid();
+  renderWords();
+
+  clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timeLeft--;
     document.getElementById("timer").innerText = timeLeft;
@@ -32,119 +74,148 @@ function startGame() {
   }, 1000);
 }
 
-// -------- END GAME ----------
-function endGame() {
-  clearInterval(timerInterval);
-  leaderboard.push({ name: playerName, score, time: 120 - timeLeft });
-  leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
-  leaderboard = leaderboard.slice(0, 10);
-  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-
-  document.getElementById("game-screen").classList.add("hidden");
-  document.getElementById("start-screen").classList.remove("hidden");
-
-  renderLeaderboard();
-}
-
-function renderLeaderboard() {
-  const lb = document.getElementById("leaderboard");
-  lb.innerHTML = "";
-  leaderboard.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.textContent = `${i+1}. ${p.name} - Skor: ${p.score}, Waktu: ${p.time} detik`;
-    lb.appendChild(li);
-  });
-}
-
-// -------- GRID GENERATOR ----------
 function generateGrid() {
-  grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
+  grid = Array.from({ length: gridSize }, () =>
+    Array.from({ length: gridSize }, () => "")
+  );
+
   words.forEach(word => placeWord(word));
-  fillRandomLetters();
-  drawGrid();
+
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      if (grid[i][j] === "") {
+        grid[i][j] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      }
+    }
+  }
+
+  renderGrid();
 }
 
 function placeWord(word) {
   let placed = false;
   while (!placed) {
+    let dir = Math.floor(Math.random() * 2); // 0: horizontal, 1: vertical
     let row = Math.floor(Math.random() * gridSize);
     let col = Math.floor(Math.random() * gridSize);
-    let dir = Math.random() > 0.5 ? "H" : "V";
 
-    if (dir === "H" && col + word.length <= gridSize) {
-      if (word.split("").every((ch, i) => grid[row][col+i] === "" || grid[row][col+i] === ch)) {
-        word.split("").forEach((ch, i) => grid[row][col+i] = ch);
+    if (dir === 0 && col + word.length <= gridSize) {
+      if (grid[row].slice(col, col + word.length).every(c => c === "")) {
+        for (let k = 0; k < word.length; k++) grid[row][col + k] = word[k];
         placed = true;
       }
-    } else if (dir === "V" && row + word.length <= gridSize) {
-      if (word.split("").every((ch, i) => grid[row+i][col] === "" || grid[row+i][col] === ch)) {
-        word.split("").forEach((ch, i) => grid[row+i][col] = ch);
+    } else if (dir === 1 && row + word.length <= gridSize) {
+      if (grid.slice(row, row + word.length).every(r => r[col] === "")) {
+        for (let k = 0; k < word.length; k++) grid[row + k][col] = word[k];
         placed = true;
       }
     }
   }
 }
 
-function fillRandomLetters() {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (grid[r][c] === "") {
-        grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
-      }
-    }
-  }
-}
-
-function drawGrid() {
+function renderGrid() {
   const gridDiv = document.getElementById("grid");
   gridDiv.innerHTML = "";
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      let cell = document.createElement("div");
-      cell.className = "cell";
-      cell.dataset.row = r;
-      cell.dataset.col = c;
-      cell.innerText = grid[r][c];
-      cell.addEventListener("click", () => selectCell(cell));
-      gridDiv.appendChild(cell);
-    }
-  }
-}
+  selectedCells = [];
 
-function displayWordList() {
-  const wordDiv = document.getElementById("word-list");
-  wordDiv.innerHTML = "";
-  words.forEach(w => {
-    const span = document.createElement("span");
-    span.className = "word";
-    span.id = `word-${w}`;
-    span.textContent = w;
-    wordDiv.appendChild(span);
+  grid.forEach((row, i) => {
+    row.forEach((letter, j) => {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.innerText = letter;
+      cell.dataset.row = i;
+      cell.dataset.col = j;
+
+      cell.addEventListener("click", () => toggleSelect(cell));
+
+      gridDiv.appendChild(cell);
+    });
   });
 }
 
-// -------- SELECTION ----------
-function selectCell(cell) {
-  cell.classList.toggle("selected");
-  selectedCells.push(cell);
+function toggleSelect(cell) {
+  if (cell.classList.contains("selected")) {
+    cell.classList.remove("selected");
+    selectedCells = selectedCells.filter(c => c !== cell);
+  } else {
+    cell.classList.add("selected");
+    selectedCells.push(cell);
+  }
 
-  if (selectedCells.length > 1) {
-    let word = selectedCells.map(c => c.innerText).join("");
-    let reversed = word.split("").reverse().join("");
+  checkWord();
+}
 
-    if (words.includes(word) || words.includes(reversed)) {
-      selectedCells.forEach(c => {
-        c.classList.remove("selected");
-        c.classList.add("found");
-      });
-      document.getElementById(`word-${word}`) ? document.getElementById(`word-${word}`).classList.add("found") : 
-      document.getElementById(`word-${reversed}`).classList.add("found");
-      score += 10;
-      document.getElementById("score").innerText = score;
-    }
+function renderWords() {
+  const wordListDiv = document.getElementById("word-list");
+  wordListDiv.innerHTML = "";
+  words.forEach(w => {
+    const span = document.createElement("span");
+    span.innerText = w;
+    span.id = `word-${w}`;
+    span.classList.add("word");
+    wordListDiv.appendChild(span);
+  });
+}
+
+function checkWord() {
+  let selectedWord = selectedCells.map(c => c.innerText).join("");
+  let reversed = selectedCells.map(c => c.innerText).reverse().join("");
+
+  if (words.includes(selectedWord) || words.includes(reversed)) {
+    selectedCells.forEach(c => {
+      c.classList.remove("selected");
+      c.classList.add("found");
+    });
+
+    let foundWord = words.includes(selectedWord) ? selectedWord : reversed;
+    document.getElementById(`word-${foundWord}`).classList.add("found");
+
+    score += 10;
+    document.getElementById("score").innerText = score;
+
+    // 🔊 sound success
+    playBeep("success");
+
     selectedCells = [];
+
+    if (document.querySelectorAll(".word.found").length === words.length) {
+      endGame();
+    }
   }
 }
 
-renderLeaderboard();
+function endGame() {
+  clearInterval(timerInterval);
+
+  // 🔊 sound game over
+  playBeep("gameover");
+
+  alert("Waktu habis atau semua kata ditemukan! Skor akhir: " + score);
+
+  saveToLeaderboard(playerName, score, 120 - timeLeft);
+
+  document.getElementById("game-screen").classList.add("hidden");
+  document.getElementById("start-screen").classList.remove("hidden");
+
+  loadLeaderboard();
+}
+
+function saveToLeaderboard(name, score, time) {
+  let board = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  board.push({ name, score, time });
+  board.sort((a, b) => b.score - a.score || a.time - b.time);
+  localStorage.setItem("leaderboard", JSON.stringify(board));
+}
+
+function loadLeaderboard() {
+  let board = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  const list = document.getElementById("leaderboard");
+  list.innerHTML = "";
+  board.slice(0, 10).forEach((entry, i) => {
+    const li = document.createElement("li");
+    li.innerText = `${i + 1}. ${entry.name} - Skor: ${entry.score}, Waktu: ${entry.time} detik`;
+    list.appendChild(li);
+  });
+}
+
+window.onload = loadLeaderboard;
