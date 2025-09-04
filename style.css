@@ -1,63 +1,77 @@
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
   margin: 0;
   padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
 }
 
-#start-screen, #game-screen {
-  max-width: 800px;
-  margin: 30px auto;
+.container {
   background: white;
+  margin: 20px;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-h1 {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 600px;
   text-align: center;
-  color: #333;
 }
 
-#word-list button {
-  margin: 5px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 6px;
-  background-color: #82d3b0;
-  font-weight: bold;
-  cursor: default;
-}
+.hidden { display: none; }
 
-#word-list button.found {
-  background-color: #4caf50;
-  color: white;
-  text-decoration: line-through;
-}
-
-#puzzle {
+#grid {
   display: grid;
-  grid-template-columns: repeat(15, 28px);
+  grid-template-columns: repeat(15, 30px);
+  grid-gap: 2px;
+  margin-top: 20px;
   justify-content: center;
-  margin-top: 15px;
 }
 
 .cell {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #aaa;
-  text-align: center;
-  line-height: 28px;
+  width: 30px;
+  height: 30px;
+  background: #f1f1f1;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
   font-weight: bold;
-  font-size: 14px;
+}
+
+.cell.selected { background: #ffeb3b; }
+.cell.found { background: #4caf50; color: white; animation: foundAnim 0.5s ease; }
+
+@keyframes foundAnim {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.word {
+  display: inline-block;
+  background: #81c784;
+  color: white;
+  padding: 5px 10px;
+  margin: 5px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.word.found { text-decoration: line-through; background: #2e7d32; }
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #0072ff;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
 }
 
-.cell.selected {
-  background-color: #f9d835;
-}
-
-.cell.found {
-  background-color: #4caf50;
-  color: white;
-}
+button:hover { background: #0056cc; }
