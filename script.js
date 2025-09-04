@@ -1,97 +1,113 @@
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+const words = ["BUKU", "PENA", "MEJA", "KURSI", "SEKOLAH", "GURU", "MURID", "PINTU", "JENDELA", "BOLA"];
+const gridSize = 12;
+let grid = [];
+let selectedCells = [];
+let score = 0;
+let time = 0;
+
+document.getElementById("playerName").textContent = prompt("Masukkan nama kamu:") || "Anonim";
+
+function initGame() {
+  grid = Array.from({ length: gridSize }, () =>
+    Array.from({ length: gridSize }, () => randomLetter())
+  );
+
+  placeWords();
+  renderGrid();
+  renderWordList();
+
+  setInterval(() => {
+    time++;
+    document.getElementById("time").textContent = time;
+  }, 1000);
 }
 
-.container {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  max-width: 700px;
-  width: 95%;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  text-align: center;
+function randomLetter() {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return alphabet[Math.floor(Math.random() * alphabet.length)];
 }
 
-h1 {
-  color: #333;
-  margin-bottom: 10px;
+function placeWords() {
+  words.forEach(word => {
+    let placed = false;
+    while (!placed) {
+      let row = Math.floor(Math.random() * gridSize);
+      let col = Math.floor(Math.random() * gridSize);
+      let dir = Math.random() > 0.5 ? "H" : "V";
+
+      if (canPlace(word, row, col, dir)) {
+        for (let i = 0; i < word.length; i++) {
+          if (dir === "H") grid[row][col + i] = word[i];
+          else grid[row + i][col] = word[i];
+        }
+        placed = true;
+      }
+    }
+  });
 }
 
-.info {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-  font-size: 14px;
+function canPlace(word, row, col, dir) {
+  if (dir === "H" && col + word.length > gridSize) return false;
+  if (dir === "V" && row + word.length > gridSize) return false;
+
+  for (let i = 0; i < word.length; i++) {
+    if (dir === "H" && grid[row][col + i] !== word[i] && grid[row][col + i] !== randomLetter()) return false;
+    if (dir === "V" && grid[row + i][col] !== word[i] && grid[row + i][col] !== randomLetter()) return false;
+  }
+  return true;
 }
 
-#wordList {
-  margin: 15px 0;
-  font-weight: bold;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
+function renderGrid() {
+  const gridDiv = document.getElementById("grid");
+  gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+  gridDiv.innerHTML = "";
 
-#wordList span {
-  padding: 5px 10px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  transition: 0.3s;
-}
-
-#wordList span.found {
-  text-decoration: line-through;
-  color: gray;
-  background: #d1ffd1;
-}
-
-#grid {
-  display: grid;
-  gap: 3px;
-  justify-content: center;
-}
-
-.cell {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ccc;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  transition: 0.2s;
-  border-radius: 6px;
-  background: #ffffff;
-}
-
-.cell:hover {
-  background: #ffeaa7;
-}
-
-.cell.selected {
-  background: #74b9ff;
-  color: white;
-}
-
-.cell.found {
-  background: #55efc4 !important;
-  color: white;
-}
-
-@media (max-width: 600px) {
-  .cell {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = grid[r][c];
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.addEventListener("click", () => selectCell(cell));
+      gridDiv.appendChild(cell);
+    }
   }
 }
+
+function renderWordList() {
+  const wordListDiv = document.getElementById("wordList");
+  wordListDiv.innerHTML = "";
+  words.forEach(w => {
+    const span = document.createElement("span");
+    span.textContent = w;
+    span.id = "word-" + w;
+    wordListDiv.appendChild(span);
+  });
+}
+
+function selectCell(cell) {
+  cell.classList.add("selected");
+  selectedCells.push(cell);
+
+  if (selectedCells.length > 1) {
+    let word = selectedCells.map(c => c.textContent).join("");
+    checkWord(word);
+    selectedCells = [];
+    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+  }
+}
+
+function checkWord(word) {
+  if (words.includes(word)) {
+    score += 10;
+    document.getElementById("score").textContent = score;
+
+    selectedCells.forEach(c => c.classList.add("found"));
+
+    const wordSpan = document.getElementById("word-" + word);
+    if (wordSpan) wordSpan.classList.add("found");
+  }
+}
+
+initGame();
