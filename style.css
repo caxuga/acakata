@@ -1,111 +1,63 @@
 body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
 }
 
-.container {
+#start-screen, #game-screen {
+  max-width: 800px;
+  margin: 30px auto;
   background: white;
-  border-radius: 16px;
   padding: 20px;
-  max-width: 750px;
-  width: 95%;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 h1 {
+  text-align: center;
   color: #333;
-  margin-bottom: 10px;
 }
 
-.info {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-#wordList {
-  margin: 15px 0;
+#word-list button {
+  margin: 5px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #82d3b0;
   font-weight: bold;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  cursor: default;
 }
 
-#wordList span {
-  padding: 5px 10px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  transition: 0.3s;
-}
-
-#wordList span.found {
+#word-list button.found {
+  background-color: #4caf50;
+  color: white;
   text-decoration: line-through;
-  color: gray;
-  background: #d1ffd1;
 }
 
-#grid {
+#puzzle {
   display: grid;
-  gap: 3px;
+  grid-template-columns: repeat(15, 28px);
   justify-content: center;
+  margin-top: 15px;
 }
 
 .cell {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ccc;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #aaa;
+  text-align: center;
+  line-height: 28px;
   font-weight: bold;
+  font-size: 14px;
   cursor: pointer;
-  user-select: none;
-  transition: 0.2s;
-  border-radius: 6px;
-  background: #ffffff;
-}
-
-.cell:hover {
-  background: #ffeaa7;
 }
 
 .cell.selected {
-  background: #74b9ff;
-  color: white;
+  background-color: #f9d835;
 }
 
 .cell.found {
-  background: #55efc4 !important;
+  background-color: #4caf50;
   color: white;
-}
-
-#leaderboard {
-  margin-top: 20px;
-  text-align: left;
-}
-
-#leaderboard h2 {
-  margin-bottom: 8px;
-  color: #444;
-}
-
-#leaderboardList {
-  padding-left: 20px;
-}
-
-@media (max-width: 600px) {
-  .cell {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-  }
 }
