@@ -10,26 +10,26 @@
   <div class="container">
     <h1>Mencari Kata</h1>
 
-    <div id="startScreen">
-      <label for="nameInput">Masukkan Nama:</label><br>
-      <input type="text" id="nameInput" placeholder="Nama kamu" required>
-      <button onclick="startGame()">Mulai Game</button>
+    <div id="playerInfo">
+      <label for="playerName">Nama: </label>
+      <input type="text" id="playerName" placeholder="Masukkan nama">
+      <button onclick="startGame()">Mulai</button>
     </div>
 
-    <div id="gameScreen" style="display:none;">
+    <div id="game" class="hidden">
       <div class="info">
-        <p><strong>Nama:</strong> <span id="playerName">-</span></p>
-        <p><strong>Waktu:</strong> <span id="time">0</span> detik</p>
-        <p><strong>Skor:</strong> <span id="score">0</span></p>
+        <p><b>Nama:</b> <span id="showName"></span></p>
+        <p><b>Waktu:</b> <span id="time">0</span> detik</p>
+        <p><b>Skor:</b> <span id="score">0</span></p>
       </div>
 
       <div id="wordList"></div>
       <div id="grid"></div>
     </div>
 
-    <div id="leaderboard">
+    <div id="leaderboardSection">
       <h2>🏆 Leaderboard</h2>
-      <ol id="leaderboardList"></ol>
+      <ol id="leaderboard"></ol>
     </div>
   </div>
 
