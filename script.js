@@ -7,36 +7,71 @@ let score = 0;
 let timeLeft = 120;
 let timerInterval;
 
-// 🎵 Efek suara dengan Web Audio API
+// 🎵 Efek suara
 function playBeep(type = "success") {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const oscillator = ctx.createOscillator();
   const gainNode = ctx.createGain();
-
   oscillator.connect(gainNode);
   gainNode.connect(ctx.destination);
 
-  if (type === "start") {
-    oscillator.frequency.value = 600;
-    gainNode.gain.value = 0.1;
-  } else if (type === "success") {
-    oscillator.frequency.value = 800;
-    gainNode.gain.value = 0.15;
-  } else if (type === "gameover") {
-    oscillator.frequency.value = 200;
-    gainNode.gain.value = 0.2;
-  }
+  if (type === "start") oscillator.frequency.value = 600;
+  if (type === "success") oscillator.frequency.value = 800;
+  if (type === "gameover") oscillator.frequency.value = 200;
 
+  gainNode.gain.value = 0.15;
   oscillator.type = "sine";
   oscillator.start();
-
-  if (type === "gameover") {
-    oscillator.stop(ctx.currentTime + 1.0);
-  } else {
-    oscillator.stop(ctx.currentTime + 0.2);
-  }
+  oscillator.stop(ctx.currentTime + (type === "gameover" ? 1.0 : 0.2));
 }
 
+// 🎉 Konfeti sederhana
+function confettiEffect() {
+  const canvas = document.getElementById("confetti-canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let confettis = [];
+  for (let i = 0; i < 150; i++) {
+    confettis.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * 0.5 + 0.5,
+      color: `hsl(${Math.random() * 360},100%,50%)`
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettis.forEach(c => {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+      ctx.fillStyle = c.color;
+      ctx.fill();
+    });
+    update();
+  }
+
+  function update() {
+    confettis.forEach(c => {
+      c.y += c.d * 4;
+      if (c.y > canvas.height) {
+        c.y = -10;
+        c.x = Math.random() * canvas.width;
+      }
+    });
+  }
+
+  let interval = setInterval(draw, 20);
+  setTimeout(() => {
+    clearInterval(interval);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
+// Start game
 function startGame() {
   const nameInput = document.getElementById("playerName").value.trim();
   if (!nameInput) {
@@ -50,8 +85,6 @@ function startGame() {
   document.getElementById("game-screen").classList.remove("hidden");
 
   resetGame();
-
-  // 🔊 sound start
   playBeep("start");
 }
 
@@ -68,9 +101,7 @@ function resetGame() {
   timerInterval = setInterval(() => {
     timeLeft--;
     document.getElementById("timer").innerText = timeLeft;
-    if (timeLeft <= 0) {
-      endGame();
-    }
+    if (timeLeft <= 0) endGame();
   }, 1000);
 }
 
@@ -78,9 +109,7 @@ function generateGrid() {
   grid = Array.from({ length: gridSize }, () =>
     Array.from({ length: gridSize }, () => "")
   );
-
   words.forEach(word => placeWord(word));
-
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
       if (grid[i][j] === "") {
@@ -88,7 +117,6 @@ function generateGrid() {
       }
     }
   }
-
   renderGrid();
 }
 
@@ -125,9 +153,7 @@ function renderGrid() {
       cell.innerText = letter;
       cell.dataset.row = i;
       cell.dataset.col = j;
-
       cell.addEventListener("click", () => toggleSelect(cell));
-
       gridDiv.appendChild(cell);
     });
   });
@@ -141,7 +167,6 @@ function toggleSelect(cell) {
     cell.classList.add("selected");
     selectedCells.push(cell);
   }
-
   checkWord();
 }
 
@@ -173,31 +198,28 @@ function checkWord() {
     score += 10;
     document.getElementById("score").innerText = score;
 
-    // 🔊 sound success
     playBeep("success");
-
     selectedCells = [];
 
     if (document.querySelectorAll(".word.found").length === words.length) {
-      endGame();
+      endGame(true);
     }
   }
 }
 
-function endGame() {
+function endGame(win = false) {
   clearInterval(timerInterval);
-
-  // 🔊 sound game over
   playBeep("gameover");
 
-  alert("Waktu habis atau semua kata ditemukan! Skor akhir: " + score);
-
   saveToLeaderboard(playerName, score, 120 - timeLeft);
+  loadLeaderboard();
 
   document.getElementById("game-screen").classList.add("hidden");
   document.getElementById("start-screen").classList.remove("hidden");
 
-  loadLeaderboard();
+  if (win) {
+    confettiEffect();
+  }
 }
 
 function saveToLeaderboard(name, score, time) {
