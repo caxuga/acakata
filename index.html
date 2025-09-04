@@ -2,32 +2,23 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Word Search Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mencari Kata</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game">
-    <h1>Word Search Game</h1>
-    
-    <div id="login-screen">
-      <input type="text" id="playerName" placeholder="Masukkan Nama">
-      <button onclick="startGame()">Mulai</button>
+  <div class="container">
+    <h1>Mencari Kata</h1>
+
+    <div class="info">
+      <p><strong>Nama:</strong> <span id="playerName">-</span></p>
+      <p><strong>Waktu:</strong> <span id="time">0</span> detik</p>
+      <p><strong>Skor:</strong> <span id="score">0</span></p>
     </div>
 
-    <div id="game-screen" class="hidden">
-      <p><b>Nama:</b> <span id="displayName"></span></p>
-      <p><b>Waktu:</b> <span id="timer">120</span> detik</p>
-      <p><b>Skor:</b> <span id="score">0</span></p>
+    <div id="wordList"></div>
 
-      <div id="word-list"></div>
-      <div id="grid"></div>
-    </div>
-
-    <div id="leaderboard-screen" class="hidden">
-      <h2>Leaderboard</h2>
-      <ol id="leaderboard"></ol>
-      <button onclick="restart()">Main Lagi</button>
-    </div>
+    <div id="grid"></div>
   </div>
 
   <script src="script.js"></script>
